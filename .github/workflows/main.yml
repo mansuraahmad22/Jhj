@@ -1,31 +1,33 @@
-name: Run Python Script Every 13 Minutes
+name: Run 15m
 
 on:
   schedule:
-    # Run every 13 minutes
-    - cron: '*/13 * * * *'
-  workflow_dispatch:  # Allows manual triggering
+    - cron: '*/12 * * * *'  # Runs every 15 minutes
+  workflow_dispatch:  # Allows manual start
 
 jobs:
-  run-python-script:
+  run-bot:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'  # Uses the latest Python 3 version
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies (if any)
-      run: |
-        python -m pip install --upgrade pip
-        # Add any dependencies your script needs here
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run Python script
-      run: |
-        # Replace 'your_script.py' with your actual script filename
-        python script.py
+      - name: Run bot
+        run: python bot.py
+
+      # ✅ Auto-restart using GitHub API
+      - name: Trigger Next Run
+        run: |
+          curl -X POST -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+          https://api.github.com/repos/${{ github.repository }}/actions/workflows/main.yml/dispatches \
+          -d '{"ref":"main"}'
